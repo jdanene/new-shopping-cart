@@ -16,6 +16,7 @@ const App = () => {
 
   return (
       <Container>
+
         <CardGrid products={products} />
       </Container>
   );
