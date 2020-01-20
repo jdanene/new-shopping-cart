@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import CardGrid from "./cardGrid/CardGrid";
 import { Button, Container, Title, Message } from 'rbx';
+import ShoppingCart from "./cardGrid/ShoppingCart";
 
 const App = () => {
   const [data, setData] = useState({});
@@ -16,8 +17,12 @@ const App = () => {
 
   return (
       <Container>
+        <ShoppingCart products={products}/>
 
-        <CardGrid products={products} />
+        <div style={{height: "60%", width:"50%","margin": "auto"}}>
+          <CardGrid products={products} />
+        </div>
+
       </Container>
   );
 };
