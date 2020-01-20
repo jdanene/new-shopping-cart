@@ -1,21 +1,52 @@
 import 'rbx/index.css';
-import {Button, Container, Tile, Title, Tag, Media, Card, Column, Image, Box, Notification} from 'rbx';
-import React, {Fragment} from "react";
+import {Button, Container, Tile, Title, Tag, Media, Card, Column, Image, Box, Notification,Dropdown,Icon,Generic} from 'rbx';
+import React, {Fragment, useState} from "react";
+import {faAngleDown} from '@fortawesome/free-solid-svg-icons'
+import {FontAwesomeIcon} from '@fortawesome/react-fontawesome'
 
 const SHIRT_SIZES = ['S', 'M', 'L', 'XL'];
 
 const SizeButtons = () => {
-    return (
-        <Fragment>
+    const [size, setSize] = useState(null);
 
-            <Button.Group size="small">
-                <span> Sizes: </span>
-                <Button>S</Button>
-                <Button>M</Button>
-                <Button>L</Button>
-                <Button>XL</Button>
-            </Button.Group>
-        </Fragment>);
+    const onClick = (newSize) =>{
+        console.log(newSize);
+
+
+        setSize(newSize)
+
+    };
+
+
+
+    return (
+        <div style={{width:'90%', borderColor:"black" }}>
+            <Dropdown>
+                <div style={{width: "90%", height: "20px",padding: "1px"}}>
+
+                <Dropdown.Trigger>
+                    <Button>
+                        <span><small>
+                            {(size===null)? "Select Size": `   ${size}   `}
+
+                        </small></span>
+                        <Icon size="small">
+                            <FontAwesomeIcon icon={faAngleDown} />
+                        </Icon>
+                    </Button>
+                </Dropdown.Trigger>
+                </div>
+
+                <Dropdown.Menu>
+                    <Dropdown.Content>
+                        <Dropdown.Item onClick={()=>onClick("S")}>S</Dropdown.Item>
+                        <Dropdown.Item onClick={()=>onClick("M")}>M</Dropdown.Item>
+                        <Dropdown.Item onClick={()=>onClick("L")}>L</Dropdown.Item>
+                        <Dropdown.Item onClick={()=>onClick("XL")}>XL</Dropdown.Item>
+                    </Dropdown.Content>
+                </Dropdown.Menu>
+            </Dropdown>
+        </div>);
 };
 
 const ProductTitle = ({title}) => {
@@ -47,13 +78,24 @@ const ProductImg = ({sku}) => {
 };
 
 const ShoppingCard = ({title, sku, price, currencyFormat, description}) => {
+
+
     return (
+
+
         <Column size="one-third">
             <ProductImg sku={sku}/>
+
+            <Generic
+                style={{ cursor: description===""? 'default': 'pointer'}}
+                color="primary"
+                       tooltip={description}
+                       tooltipPosition="top"
+                       tooltipResponsive={{ desktop: 'bottom' }}>
             <ProductTitle title={title}/>
             <ColoredLine color="orange"/>
             <Price price={price} currencyFormat={currencyFormat}/>
-            <ProductDescription description={description}/>
+            </Generic>
             <SizeButtons/>
         </Column>
     );
@@ -98,7 +140,7 @@ const ColoredLine = ({color}) => (
 //https://bulma.io/documentation/columns/options/
 const CardGrid = ({products}) => {
     return (
-        <Column.Group multiline vcentered >
+        <Column.Group multiline centered >
             {products.map(({title, sku, price, currencyFormat, description}) => <ShoppingCard key={sku} title={title}
                                                                                               sku={sku} price={price}
                                                                                               currencyFormat={currencyFormat}

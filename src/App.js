@@ -16,14 +16,14 @@ const App = () => {
   }, []);
 
   return (
-      <Container>
+      <div>
+          <div style={{height:"60%"}}>
         <ShoppingCart products={products}/>
-
-        <div style={{height: "60%", width:"50%","margin": "auto"}}>
-          <CardGrid products={products} />
-        </div>
-
-      </Container>
+          </div>
+          <div style={{float:"right", width:"70%"}}>
+        <CardGrid products={products} />
+          </div>
+      </div>
   );
 };
 
