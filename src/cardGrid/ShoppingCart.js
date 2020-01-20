@@ -271,10 +271,10 @@ const ShoppingCart = ({products}) => {
                 onSetOpen={onSetSidebarOpen}
                 styles={{
                     sidebar:
-                        {background: "white", width: "30%",height:"50%"}
+                        {background: "white", width: "30%",height:"100%"}
                 }}
             >
-                <div style={{paddingTop: "3%"}}>
+                <div style={{paddingTop: "1%", paddingLeft:"1%"}}>
                     <Button size={"large"} onClick={() => onSetSidebarOpen({sidebarOpen: true})}>
                         <Icon>
                             <FontAwesomeIcon icon={faShoppingCart}/>
