@@ -98,7 +98,7 @@ const ColoredLine = ({color}) => (
 //https://bulma.io/documentation/columns/options/
 const CardGrid = ({products}) => {
     return (
-        <Column.Group multiline vcentered desktop mobile>
+        <Column.Group multiline vcentered >
             {products.map(({title, sku, price, currencyFormat, description}) => <ShoppingCard key={sku} title={title}
                                                                                               sku={sku} price={price}
                                                                                               currencyFormat={currencyFormat}
