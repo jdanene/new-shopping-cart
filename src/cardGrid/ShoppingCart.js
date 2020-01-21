@@ -18,6 +18,8 @@ import {
 } from 'rbx';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome'
 import {faShoppingCart, faPlusSquare, faMinusSquare} from '@fortawesome/free-solid-svg-icons'
+import {getId} from "./useShoppingCart";
+import {Price} from "./CardGrid";
 
 //https://dfee.github.io/rbx/components/media
 
@@ -68,7 +70,6 @@ const test = {
 
 
 const ProductImg = ({sku}) => {
-    console.log(`data/products/${sku}_1.jpg`);
     return (<Image.Container as="p" size={64}>
         <Image
             alt="64x64"
@@ -77,30 +78,27 @@ const ProductImg = ({sku}) => {
     </Image.Container>)
 };
 
-const ProductCost = ({numberSelected, currencyFormat, price}) => {
 
-};
-/*
-<ProductImg sku={sku}/>
+const SelectedItem = ({item, decrementCart, incrementCart, removeFromCart}) => {
 
+    const onDelete = () => {
+        removeFromCart({item});
+    };
 
-<Media.Item>
-    <Title as="p" size={6}>
-        {title}
-    </Title>
-    <Title as="p" subtitle size={6}>
-        {description}
-    </Title>
-</Media.Item>
-*/
+    const onCartAdd = () => {
+        incrementCart({item});
+    };
 
-const SelectedItem = ({sku, title, style, numberSelected, size}) => {
+    const onCartDecrement = () => {
+        decrementCart({item});
+    };
+
     return (
         <div style={
             {
                 border: '2px solid red',
                 margin: '1%',
-                padding:0
+                padding: 0
             }
         }>
 
@@ -110,39 +108,39 @@ const SelectedItem = ({sku, title, style, numberSelected, size}) => {
                     <Card.Content>
                         <Media>
                             <Media.Item as="figure" align="left">
-                                <ProductImg sku={sku}/>
+                                <ProductImg sku={item.sku}/>
                             </Media.Item>
 
                             <Media.Item align="center">
                                 <Title as="p" size={6}>
-                                    {title}
+                                    {item.title}
                                 </Title>
                                 <Title as="p" subtitle size={6}>
-                                    <small>{size + "|" + style}</small>
+                                    <small>{item.size + "|" + item.style}</small>
                                 </Title>
                             </Media.Item>
 
                             <Media.Item align="right">
                                 <div style={{float: "right"}}>
-                                    <Delete/>
+                                    <Delete onClick={onDelete}/>
                                 </div>
                                 <br/>
                                 <div style={{
                                     margin: "16%",
                                     color: "green"
                                 }}>
-                                    <small>$10.75</small>
+                                    <Price price={item.price} currencyFormat={item.currencyFormat}/>
                                 </div>
                                 <Level breakpoint="mobile">
                                     <Level.Item align="left">
                                         <Level.Item as="a">
                                             <Button.Group hasAddons align="right">
-                                                <Button>
+                                                <Button onClick={onCartAdd}>
                                                     <Icon size="small">
                                                         <FontAwesomeIcon icon={faPlusSquare}/>
                                                     </Icon>
                                                 </Button>
-                                                <Button>
+                                                <Button onClick={onCartDecrement}>
                                                     <Icon size="small">
                                                         <FontAwesomeIcon icon={faMinusSquare}/>
                                                     </Icon>
@@ -153,7 +151,7 @@ const SelectedItem = ({sku, title, style, numberSelected, size}) => {
                                 </Level>
                                 <Content>
                                     <p>
-                                        <small>Quantity: {numberSelected}</small>
+                                        <small>Quantity: {item.numberSelected}</small>
                                         <br/>
                                     </p>
                                 </Content>
@@ -169,26 +167,28 @@ const SelectedItem = ({sku, title, style, numberSelected, size}) => {
     )
 };
 
-const SelectedGrid = ({itemSelected}) => {
-    return (
-                <Container>
-                    <Tile kind="ancestor">
-                        <Tile kind="parent" vertical>
+const SelectedGrid = ({itemsInCart,decrementCart,removeFromCart,incrementCart}) => {
 
-                            {itemSelected.map(({sku, title, style, numberSelected, size}) => <SelectedItem
-                                key={sku + "#" + size}
-                                sku={sku}
-                                title={title} style={style}
-                                numberSelected={numberSelected} size={size}/>)}
-                        </Tile>
-                    </Tile>
-                </Container>
+    return (
+        <Container>
+            <Tile kind="ancestor">
+                <Tile kind="parent" vertical>
+
+                    {Object.keys(itemsInCart).length === 0?'':Object.values(itemsInCart).map((item) => <SelectedItem
+                        item={item}
+                        key={`${item.sku}#${item.size}`}
+                        decrementCart={decrementCart}
+                        removeFromCart={removeFromCart}
+                        incrementCart={incrementCart}
+                    />)}
+                </Tile>
+            </Tile>
+        </Container>
 
 
     );
 
 };
-
 
 
 //ToDo: Catch when its equal to zero
@@ -208,7 +208,9 @@ const addNewItemToCart = (itemJson) => {
 };
 
 const GetTotalCost = ({itemSelected}) => {
-    const {cost, numItems} = itemSelected.reduce((accumulator, currentValue) => {
+
+
+    const {cost, numItems} = Object.values(itemSelected).reduce((accumulator, currentValue) => {
         return (
             {
                 cost: (currentValue.numberSelected * currentValue.price + accumulator.cost),
@@ -216,9 +218,10 @@ const GetTotalCost = ({itemSelected}) => {
             })
     }, {cost: 0, numItems: 0});
 
+    
     return (
         <p>
-            <small>Cost: ${cost}</small>
+            <small>Cost: ${cost.toFixed(2)}</small>
             <br/>
             <small>Items : {numItems}</small>
         </p>
@@ -226,13 +229,11 @@ const GetTotalCost = ({itemSelected}) => {
 };
 
 
-const ShoppingCart = ({products}) => {
-
-
-    const [data, setData] = useState({sidebarOpen: false, itemSelected: test});
+const ShoppingCart = ({shoppingCartState}) => {
+    //const [data, setData] = useState({sidebarOpen: false, itemSelected: test});
 
     const onSetSidebarOpen = (open) => {
-        setData({sidebarOpen: open, itemSelected: data.itemSelected})
+        shoppingCartState.setCartOpen({sidebarOpen: open});
     };
 
     return (
@@ -241,15 +242,13 @@ const ShoppingCart = ({products}) => {
         }}>
             <Sidebar
                 sidebar={
-
-                    <div >
-
+                    <div>
                         <Box>
                             <Column.Group multiline gapSize={1}>
                                 <Column>
 
                                     <Box color="primary" textAlign="centered">
-                                        <GetTotalCost itemSelected={Object.values(data.itemSelected)}/>
+                                        <GetTotalCost itemSelected={shoppingCartState.itemsInCart}/>
                                     </Box>
                                     <Column.Group breakpoint="mobile">
                                         <Column>
@@ -263,18 +262,23 @@ const ShoppingCart = ({products}) => {
                             </Column.Group>
                         </Box>
 
-                        <SelectedGrid itemSelected={Object.values(data.itemSelected)}/>
+                        <SelectedGrid
+                            itemsInCart={shoppingCartState.itemsInCart}
+                            decrementCart={shoppingCartState.decrementCart}
+                            removeFromCart={shoppingCartState.removeFromCart}
+                            incrementCart={shoppingCartState.incrementCart}
+                        />
                     </div>
 
                 }
-                open={data.sidebarOpen}
+                open={shoppingCartState.cartOpen.sidebarOpen}
                 onSetOpen={onSetSidebarOpen}
                 styles={{
                     sidebar:
-                        {background: "white", width: "30%",height:"100%"}
+                        {background: "white", width: "30%", height: "100%"}
                 }}
             >
-                <div style={{paddingTop: "1%", paddingLeft:"1%"}}>
+                <div style={{paddingTop: "1%", paddingLeft: "1%"}}>
                     <Button size={"large"} onClick={() => onSetSidebarOpen({sidebarOpen: true})}>
                         <Icon>
                             <FontAwesomeIcon icon={faShoppingCart}/>
