@@ -112,6 +112,8 @@ const SizeAndBuy = ({openCart, addToCart, item, inventory, incrementInventory, d
     }
 
 
+
+
     return (
         <Level>
             <Level.Item align="left">

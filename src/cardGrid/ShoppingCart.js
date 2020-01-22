@@ -21,6 +21,7 @@ import {FontAwesomeIcon} from '@fortawesome/react-fontawesome'
 import {faShoppingCart, faPlusSquare, faMinusSquare} from '@fortawesome/free-solid-svg-icons'
 import {Price} from "./CardGrid";
 import {checkIfHasInventory,isTooManyItems} from "./useShoppingCart";
+import {db} from "./Db";
 
 
 const selectedItemStyle = {color: "#92a8d1"};
@@ -296,7 +297,7 @@ const ShoppingCart = ({shoppingCartState}) => {
         }
         shoppingCartState.setItemInCart(shoppingCartState.itemsInCart);
         shoppingCartState.setCartOpen({sidebarOpen: true});
-        shoppingCartState.uploadToCartToDp(); 
+        shoppingCartState.uploadToCartToDp();
 
     };
 
@@ -306,6 +307,42 @@ const ShoppingCart = ({shoppingCartState}) => {
     const onSetSidebarOpen = (open) => {
         shoppingCartState.setCartOpen({sidebarOpen: open});
     };
+
+    const purchaseItems =() =>{
+
+
+        let transcript = JSON.parse(JSON.stringify(shoppingCartState.inventory));
+
+        console.log(transcript);
+        console.log(shoppingCartState.inventory);
+
+
+        let keys = Object.keys(shoppingCartState.itemsInCart);
+
+        for (let i in keys){
+            let actualKey = keys[i];
+            let sku = shoppingCartState.itemsInCart[actualKey]["sku"];
+            let size = shoppingCartState.itemsInCart[actualKey]["size"];
+
+            transcript[sku][size] = transcript[sku][size] - shoppingCartState.itemsInCart[actualKey]["numberSelected"];
+
+            delete  shoppingCartState.itemsInCart[actualKey];
+
+        }
+
+
+        db.ref('inventory').transaction(()=>transcript).then(result => {
+            console.log('Transaction success!');
+        }).catch(err => {
+            console.log('Transaction failure:', err);
+        });
+        shoppingCartState.setItemInCart(shoppingCartState.itemsInCart);
+        shoppingCartState.setCartOpen({sidebarOpen: true});
+        shoppingCartState.uploadToCartToDp();
+
+
+    };
+
 
     return (
         <div style={{
@@ -327,7 +364,7 @@ const ShoppingCart = ({shoppingCartState}) => {
                                                 {!(isGood)?
                                                 <Button onClick={balanceCart} backgroundColor="danger" textColor={"white"} fullwidth
                                                         size={"medium"}> Update Cart </Button>:
-                                                    <Button  backgroundColor="black" textColor={"white"} fullwidth
+                                                    <Button onClick={purchaseItems} backgroundColor="black" textColor={"white"} fullwidth
                                                             size={"medium"}>  Checkout</Button>
                                                 }
                                             </div>
