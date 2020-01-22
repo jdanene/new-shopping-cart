@@ -1,4 +1,5 @@
 import React, {useEffect, useState, Fragment} from 'react';
+import {db} from "./Db";
 
 /*
 {10412368723880252#L:{
@@ -51,15 +52,18 @@ const useShoppingCart = () =>{
     const [itemsInCart, setItemInCart] = React.useState({});
     const [inventory, setInventory] = React.useState({});
 
-
     useEffect(() => {
-        const fetchInventory = async () => {
-            const response = await fetch('./data/inventory.json');
-            const json = await response.json();
-            setInventory(json);
+
+        const handleData = snap => {
+            console.log(snap.val())
+            if (snap.val()) setInventory(snap.val());
         };
-        fetchInventory();
+        db.ref().on('value', handleData, error => alert(error));
+
     }, []);
+
+
+
 
     const decrementInventory = ({sku,size})=>{
         inventory[sku][size]--;
