@@ -16,6 +16,25 @@ import firebase from "firebase";
          "size": "L"
 }}
 */
+const mergeCarts = (cart, saveCart) => {
+
+    let currentCart = Object.assign({}, cart);
+
+    if (Object.keys(cart).length !==0){
+        for (let key in Object.keys(saveCart)){
+            if (key in currentCart){
+                currentCart[key].numberSelected+= saveCart[key].numberSelected;
+            }else{
+                currentCart[key] = saveCart[key];
+            }
+        }
+    }else{
+        currentCart = saveCart;
+    }
+
+    return currentCart;
+};
+
 
 /*
 Check if has inventory
@@ -42,27 +61,70 @@ export const checkIfHasInventory = ({sku,inventory}) => {
 
 export const getId = ({item}) => {
     if ("size" in item){
-        return `${item.sku}#${item.size}`
+        return `${item.sku}${item.size}`
     }
 
 };
 
 
-const useShoppingCart = () =>{
+const useShoppingCart = (user) =>{
     const [cartOpen, setCartOpen] =  React.useState({sidebarOpen: false});
     const [itemsInCart, setItemInCart] = React.useState({});
     const [inventory, setInventory] = React.useState({});
+    const [isLoggedIn, setLogin] = React.useState(false);
+
+    useEffect(()=>{
+        if (user!==null) setLogin(true);
+
+
+        if (Object.keys(itemsInCart).length !==0 && user!==null){
+            let json = {};
+            json[user.uid] = itemsInCart;
+            db.ref('/carts/' + user.uid).set(itemsInCart);
+        }
+
+    });
+
+
+    /**
+     * Runs anytime loggin or logged out.
+     */
+    useEffect(()=>{
+
+        const fetch =  () =>
+        {
+
+            const handleData = snap => {
+                console.log("snap")
+                console.log(snap.val())
+                if (snap.val()) {
+                    let savedCart = snap.val();
+                    let newCart = mergeCarts(itemsInCart, savedCart);
+                    setItemInCart(newCart);
+                    console.log("new new")
+                    console.log(newCart)
+
+                    if (Object.keys(newCart).length !== 0) {
+                        setCartOpen({sidebarOpen: true})
+                    }
+                }
+            };
+            db.ref('/carts/' + user.uid).once('value', handleData, (error) => alert(error));
+
+        };
+
+        if (user!==null) fetch();
+    },[user]);
+
 
     useEffect(() => {
 
         const handleData = snap => {
-            console.log(snap.val())
             if (snap.val()) setInventory(snap.val());
         };
-        db.ref().on('value', handleData, error => alert(error));
+        db.ref('/inventory/').on('value', handleData, error => alert(error));
 
     }, []);
-
 
 
 
@@ -86,7 +148,7 @@ const useShoppingCart = () =>{
      * @param size
      */
     const addToCart = ({item,size}) =>{
-        let id = `${item.sku}#${size}`;
+        let id = `${item.sku}${size}`;
 
         // simply iterate up the number of selected items
         if (id in itemsInCart){

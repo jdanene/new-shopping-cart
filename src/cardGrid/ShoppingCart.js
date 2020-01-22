@@ -184,7 +184,7 @@ const SelectedGrid = ({itemsInCart,decrementCart,removeFromCart,incrementCart,de
 
                     {Object.keys(itemsInCart).length === 0?'':Object.values(itemsInCart).map((item) => <SelectedItem
                         item={item}
-                        key={`${item.sku}#${item.size}`}
+                        key={`${item.sku}${item.size}`}
                         decrementCart={decrementCart}
                         removeFromCart={removeFromCart}
                         incrementCart={incrementCart}

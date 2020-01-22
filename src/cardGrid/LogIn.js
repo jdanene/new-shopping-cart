@@ -32,11 +32,12 @@ const SignIn = () => (
     />
 );
 
+const Banner = ({ user, title }) => {
+    console.log(user);
 
-const Banner = ({ user, title }) => (
-    <React.Fragment>
+    return  <React.Fragment>
         { user ? <Welcome user={ user } /> : <SignIn /> }
     </React.Fragment>
-);
+};
 
 export default Banner;
