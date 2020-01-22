@@ -7,6 +7,7 @@
       <change beforePath="$PROJECT_DIR$/package-lock.json" beforeDir="false" afterPath="$PROJECT_DIR$/package-lock.json" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/package.json" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/App.js" beforeDir="false" afterPath="$PROJECT_DIR$/src/App.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/cardGrid/Db.js" beforeDir="false" afterPath="$PROJECT_DIR$/src/cardGrid/Db.js" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/cardGrid/useShoppingCart.js" beforeDir="false" afterPath="$PROJECT_DIR$/src/cardGrid/useShoppingCart.js" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/yarn.lock" beforeDir="false" afterPath="$PROJECT_DIR$/yarn.lock" afterDir="false" />
     </list>
@@ -62,7 +63,7 @@
       <updated>1579234259199</updated>
       <workItem from="1579234260282" duration="12921000" />
       <workItem from="1579407819129" duration="5205000" />
-      <workItem from="1579473194901" duration="52717000" />
+      <workItem from="1579473194901" duration="55232000" />
     </task>
     <servers />
   </component>
