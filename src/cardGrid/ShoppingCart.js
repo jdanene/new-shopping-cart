@@ -14,14 +14,14 @@ import {
     Content,
     Card,
     Column,
-    Notification
+    Notification,
+    Message
 } from 'rbx';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome'
 import {faShoppingCart, faPlusSquare, faMinusSquare} from '@fortawesome/free-solid-svg-icons'
 import {Price} from "./CardGrid";
-import {checkIfHasInventory} from "./useShoppingCart";
+import {checkIfHasInventory,isTooManyItems} from "./useShoppingCart";
 
-//https://dfee.github.io/rbx/components/media
 
 const selectedItemStyle = {color: "#92a8d1"};
 
@@ -94,9 +94,11 @@ const SelectedItem = ({item, decrementCart, incrementCart, removeFromCart,invent
     };
 
     const onCartDecrement = () => {
+
         decrementCart({item});
     };
 
+    let isTooMany = isTooManyItems({inventory,item});
     return (
         <div style={
             {
@@ -110,6 +112,12 @@ const SelectedItem = ({item, decrementCart, incrementCart, removeFromCart,invent
                 <Card paddingless>
 
                     <Card.Content>
+                        {isTooMany>0?
+                        <Message >
+                            <Message.Header>
+                                <p>Only {-1*(-item["numberSelected"]+isTooMany)} items in stock!</p>
+                            </Message.Header>
+                        </Message>:''}
                         <Media>
                             <Media.Item as="figure" align="left">
                                 <ProductImg sku={item.sku}/>
@@ -140,10 +148,13 @@ const SelectedItem = ({item, decrementCart, incrementCart, removeFromCart,invent
                                         <Level.Item as="a">
                                             <Button.Group hasAddons align="right">
                                                 <Button onClick={onCartAdd}
-                                                        unselectable={!(hasInventory({inventory}))}
-                                                        disabled={!(hasInventory({inventory}))}
-                                                        tooltip= {hasInventory({inventory})?'':"Out of Stock"}
-                                                        tooltipPosition="bottom">
+                                                        unselectable={!(hasInventory({inventory})) || (isTooMany>=0)}
+                                                        disabled={!(hasInventory({inventory}))|| (isTooMany>=0)}
+                                                        tooltip= {
+                                                            isTooMany>0? "Remove Items or Update Cart":hasInventory({inventory})?'':"Out of Stock"
+                                                        }
+                                                        tooltipPosition="bottom"
+                                                        tooltipColor="dark">
                                                     <Icon size="small">
                                                         <FontAwesomeIcon icon={faPlusSquare}/>
                                                     </Icon>
@@ -220,6 +231,7 @@ const addNewItemToCart = (itemJson) => {
 
 const GetTotalCost = ({itemSelected}) => {
 
+    console.log(itemSelected)
 
     const {cost, numItems} = Object.values(itemSelected).reduce((accumulator, currentValue) => {
         return (
@@ -241,8 +253,55 @@ const GetTotalCost = ({itemSelected}) => {
 };
 
 
+
+
 const ShoppingCart = ({shoppingCartState}) => {
     //const [data, setData] = useState({sidebarOpen: false, itemSelected: test});
+    const hasInventory = () =>
+    {
+        const SHIRT_SIZES = ['S', 'M', 'L', 'XL'];
+
+        let i;
+        let keys = Object.keys(shoppingCartState.itemsInCart);
+        console.log(shoppingCartState.itemsInCart);
+        for (i in keys){
+            let id = keys[i];
+            let sku = shoppingCartState.itemsInCart[id]["sku"];
+            let size = shoppingCartState.itemsInCart[id]["size"];
+
+
+                if (shoppingCartState.inventory[sku][size]< shoppingCartState.itemsInCart[id].numberSelected)
+                    return false;
+
+
+        }
+
+        return true;
+    };
+
+    const balanceCart = () =>{
+
+        console.log("balancing")
+        let i;
+        let keys = Object.keys(shoppingCartState.itemsInCart);
+        for (i in keys){
+            let id = keys[i];
+            let sku = shoppingCartState.itemsInCart[id]["sku"];
+            let size = shoppingCartState.itemsInCart[id]["size"];
+
+            if ((shoppingCartState.inventory[sku][size]< shoppingCartState.itemsInCart[id].numberSelected)){
+                shoppingCartState.itemsInCart[id].numberSelected = shoppingCartState.inventory[sku][size];
+            }
+
+        }
+        shoppingCartState.setItemInCart(shoppingCartState.itemsInCart);
+        shoppingCartState.setCartOpen({sidebarOpen: true});
+        shoppingCartState.uploadToCartToDp(); 
+
+    };
+
+    const isGood = hasInventory();
+
 
     const onSetSidebarOpen = (open) => {
         shoppingCartState.setCartOpen({sidebarOpen: open});
@@ -265,8 +324,12 @@ const ShoppingCart = ({shoppingCartState}) => {
                                     <Column.Group breakpoint="mobile">
                                         <Column>
                                             <div style={{padding: "5%"}}>
-                                                <Button backgroundColor={"black"} textColor={"white"} fullwidth
-                                                        size={"medium"}> Checkout </Button>
+                                                {!(isGood)?
+                                                <Button onClick={balanceCart} backgroundColor="danger" textColor={"white"} fullwidth
+                                                        size={"medium"}> Update Cart </Button>:
+                                                    <Button  backgroundColor="black" textColor={"white"} fullwidth
+                                                            size={"medium"}>  Checkout</Button>
+                                                }
                                             </div>
                                         </Column>
                                     </Column.Group>

@@ -16,21 +16,41 @@ import firebase from "firebase";
          "size": "L"
 }}
 */
+
+
+const resetInventoryAfterMerge=({newCart,inventory})=>{
+
+
+};
+
 const mergeCarts = (cart, saveCart) => {
+    //let newCart = mergeCarts(itemsInCart, savedCart);
 
-    let currentCart = Object.assign({}, cart);
-
-    if (Object.keys(cart).length !==0){
-        for (let key in Object.keys(saveCart)){
-            if (key in currentCart){
-                currentCart[key].numberSelected+= saveCart[key].numberSelected;
-            }else{
-                currentCart[key] = saveCart[key];
-            }
-        }
-    }else{
-        currentCart = saveCart;
+    console.log("---MERGING---")
+    console.log(saveCart)
+    console.log(cart)
+    let currentCart = {};
+    let cartKeys = Object.keys(cart);
+    for (let c in cartKeys){
+        currentCart[cartKeys[c]] = cart[cartKeys[c]]
     }
+    console.log(currentCart)
+
+
+
+    let cartKeys1 = Object.keys(saveCart);
+    for (let key in cartKeys1){
+        let keyActual = cartKeys1[key];
+        if (keyActual in currentCart){
+            currentCart[keyActual]["numberSelected"]+= saveCart[keyActual].numberSelected;
+            console.log(saveCart[keyActual].numberSelected,saveCart[keyActual], "debuggg")
+        }else{
+            currentCart[keyActual] = saveCart[keyActual];
+            console.log(saveCart[keyActual])
+
+        }
+    }
+
 
     return currentCart;
 };
@@ -66,6 +86,15 @@ export const getId = ({item}) => {
 
 };
 
+/**
+ * If>0 the user has too many items. The return is how much the useer is over by
+ * and the inventory[sku][size] is amount in stock
+ */
+export const isTooManyItems = ({inventory,item}) =>{
+    let numItemsInInventory = inventory[item.sku][item.size];
+    console.log(numItemsInInventory)
+    return item["numberSelected"]-numItemsInInventory
+};
 
 const useShoppingCart = (user) =>{
     const [cartOpen, setCartOpen] =  React.useState({sidebarOpen: false});
@@ -73,18 +102,15 @@ const useShoppingCart = (user) =>{
     const [inventory, setInventory] = React.useState({});
     const [isLoggedIn, setLogin] = React.useState(false);
 
-    useEffect(()=>{
-        if (user!==null) setLogin(true);
 
 
+    const uploadToCartToDp=()=>{
         if (Object.keys(itemsInCart).length !==0 && user!==null){
             let json = {};
             json[user.uid] = itemsInCart;
             db.ref('/carts/' + user.uid).set(itemsInCart);
         }
-
-    });
-
+    };
 
     /**
      * Runs anytime loggin or logged out.
@@ -100,6 +126,10 @@ const useShoppingCart = (user) =>{
                 if (snap.val()) {
                     let savedCart = snap.val();
                     let newCart = mergeCarts(itemsInCart, savedCart);
+
+
+
+
                     setItemInCart(newCart);
                     console.log("new new")
                     console.log(newCart)
@@ -108,6 +138,7 @@ const useShoppingCart = (user) =>{
                         setCartOpen({sidebarOpen: true})
                     }
                 }
+                uploadToCartToDp();
             };
             db.ref('/carts/' + user.uid).once('value', handleData, (error) => alert(error));
 
@@ -116,6 +147,19 @@ const useShoppingCart = (user) =>{
         if (user!==null) fetch();
     },[user]);
 
+    /**
+    useEffect(()=>{
+        if (user!==null) setLogin(true);
+
+
+        if (Object.keys(itemsInCart).length !==0 && user!==null){
+            let json = {};
+            json[user.uid] = itemsInCart;
+            db.ref('/carts/' + user.uid).set(itemsInCart);
+        }
+
+    },[user,itemsInCart,cartOpen]);
+*/
 
     useEffect(() => {
 
@@ -128,11 +172,15 @@ const useShoppingCart = (user) =>{
 
 
 
-    const decrementInventory = ({sku,size})=>{
-        inventory[sku][size]--;
-        console.log(inventory)
-        setInventory(inventory);
+
+    const decrementInventory = ({item})=>{
+
+            inventory[item.sku][item.size]--;
+            console.log(inventory);
+            setInventory(inventory);
+
         setCartOpen(cartOpen);
+
     };
 
     const incrementInventory = ({sku,size})=>{
@@ -162,6 +210,8 @@ const useShoppingCart = (user) =>{
 
         }
         setItemInCart(itemsInCart);
+        uploadToCartToDp();
+
     };
 
     const incrementCart =({item})=>{
@@ -171,12 +221,16 @@ const useShoppingCart = (user) =>{
             setItemInCart(itemsInCart);
 
             // decrement inventory
-            inventory[item.sku][item.size]--;
-            setInventory(inventory);
+           // if (isTooManyItems({inventory,item})<=0) {
+            //    inventory[item.sku][item.size]--;
+            //    setInventory(inventory);
+           // }
 
         }
         setCartOpen({sidebarOpen: true});
+        uploadToCartToDp();
     };
+
 
     const decrementCart = ({item}) =>{
         let id = getId({item});
@@ -190,11 +244,15 @@ const useShoppingCart = (user) =>{
                 setItemInCart(itemsInCart);
             }
             // increment inventory
-            inventory[item.sku][item.size]++;
-            setInventory(inventory);
+           // if (isTooManyItems({inventory,item})<=0){
+           //     inventory[item.sku][item.size]++;
+           //     setInventory(inventory);
+           // }
+
 
         }
         setCartOpen({sidebarOpen: true});
+        uploadToCartToDp();
     };
 
     /**
@@ -205,18 +263,17 @@ const useShoppingCart = (user) =>{
         let id = getId({item});
         // simply iterate up the number of selected items
         if (id in itemsInCart){
+                // increment inventory
+                //inventory[item.sku][item.size]+=item.numberSelected;
+                // delete item
+                delete itemsInCart[id];
 
-            // increment inventory
-            inventory[item.sku][item.size]+=item.numberSelected;
-            // delete item
-            delete itemsInCart[id];
-
-            // set states
-            setItemInCart(itemsInCart);
-            setInventory(inventory);
-
+                // set states
+                setItemInCart(itemsInCart);
+                //setInventory(inventory);
         }
         setCartOpen({sidebarOpen: true});
+        uploadToCartToDp();
     };
 
     const openCart=()=>{
@@ -235,7 +292,8 @@ const useShoppingCart = (user) =>{
         openCart,
         inventory,
         decrementInventory,
-        incrementInventory
+        incrementInventory,
+        uploadToCartToDp
     };
 };
 
