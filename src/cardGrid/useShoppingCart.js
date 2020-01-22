@@ -15,6 +15,29 @@ import React, {useEffect, useState, Fragment} from 'react';
 }}
 */
 
+/*
+Check if has inventory
+ */
+export const checkIfHasInventory = ({sku,inventory}) => {
+    if (sku in inventory) {
+        if (Object.keys(inventory[sku]).length === 0) {
+            return false;
+        } else {
+            let i = 0;
+            let inventoryValues = Object.values(inventory[sku]);
+            while (i < inventoryValues.length) {
+                if (inventoryValues[i] > 0) {
+                    return true;
+                }
+                i++
+            }
+            return false;
+        }
+    } else {
+        return false;
+    }
+};
+
 export const getId = ({item}) => {
     if ("size" in item){
         return `${item.sku}#${item.size}`
@@ -26,6 +49,31 @@ export const getId = ({item}) => {
 const useShoppingCart = () =>{
     const [cartOpen, setCartOpen] =  React.useState({sidebarOpen: false});
     const [itemsInCart, setItemInCart] = React.useState({});
+    const [inventory, setInventory] = React.useState({});
+
+
+    useEffect(() => {
+        const fetchInventory = async () => {
+            const response = await fetch('./data/inventory.json');
+            const json = await response.json();
+            setInventory(json);
+        };
+        fetchInventory();
+    }, []);
+
+    const decrementInventory = ({sku,size})=>{
+        inventory[sku][size]--;
+        console.log(inventory)
+        setInventory(inventory);
+        setCartOpen(cartOpen);
+    };
+
+    const incrementInventory = ({sku,size})=>{
+        inventory[sku][size]++;
+        setInventory(inventory);
+        setCartOpen(cartOpen);
+    };
+
 
     /**
      * Add item to shopping cart
@@ -54,6 +102,11 @@ const useShoppingCart = () =>{
         if (id in itemsInCart){
             itemsInCart[id].numberSelected++;
             setItemInCart(itemsInCart);
+
+            // decrement inventory
+            inventory[item.sku][item.size]--;
+            setInventory(inventory);
+
         }
         setCartOpen({sidebarOpen: true});
     };
@@ -69,6 +122,9 @@ const useShoppingCart = () =>{
             }else{
                 setItemInCart(itemsInCart);
             }
+            // increment inventory
+            inventory[item.sku][item.size]++;
+            setInventory(inventory);
 
         }
         setCartOpen({sidebarOpen: true});
@@ -82,8 +138,16 @@ const useShoppingCart = () =>{
         let id = getId({item});
         // simply iterate up the number of selected items
         if (id in itemsInCart){
+
+            // increment inventory
+            inventory[item.sku][item.size]+=item.numberSelected;
+            // delete item
             delete itemsInCart[id];
+
+            // set states
             setItemInCart(itemsInCart);
+            setInventory(inventory);
+
         }
         setCartOpen({sidebarOpen: true});
     };
@@ -101,7 +165,10 @@ const useShoppingCart = () =>{
         decrementCart,
         removeFromCart,
         incrementCart,
-        openCart
+        openCart,
+        inventory,
+        decrementInventory,
+        incrementInventory
     };
 };
 

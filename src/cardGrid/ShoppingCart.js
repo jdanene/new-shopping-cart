@@ -18,8 +18,8 @@ import {
 } from 'rbx';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome'
 import {faShoppingCart, faPlusSquare, faMinusSquare} from '@fortawesome/free-solid-svg-icons'
-import {getId} from "./useShoppingCart";
 import {Price} from "./CardGrid";
+import {checkIfHasInventory} from "./useShoppingCart";
 
 //https://dfee.github.io/rbx/components/media
 
@@ -79,7 +79,11 @@ const ProductImg = ({sku}) => {
 };
 
 
-const SelectedItem = ({item, decrementCart, incrementCart, removeFromCart}) => {
+
+const SelectedItem = ({item, decrementCart, incrementCart, removeFromCart,inventory, incrementInventory,decrementInventory}) => {
+
+    const hasInventory = ({inventory}) => Object.values(inventory[item.sku]).reduce((a,b)=>a+b,0);
+
 
     const onDelete = () => {
         removeFromCart({item});
@@ -135,7 +139,11 @@ const SelectedItem = ({item, decrementCart, incrementCart, removeFromCart}) => {
                                     <Level.Item align="left">
                                         <Level.Item as="a">
                                             <Button.Group hasAddons align="right">
-                                                <Button onClick={onCartAdd}>
+                                                <Button onClick={onCartAdd}
+                                                        unselectable={!(hasInventory({inventory}))}
+                                                        disabled={!(hasInventory({inventory}))}
+                                                        tooltip= {hasInventory({inventory})?'':"Out of Stock"}
+                                                        tooltipPosition="bottom">
                                                     <Icon size="small">
                                                         <FontAwesomeIcon icon={faPlusSquare}/>
                                                     </Icon>
@@ -167,7 +175,7 @@ const SelectedItem = ({item, decrementCart, incrementCart, removeFromCart}) => {
     )
 };
 
-const SelectedGrid = ({itemsInCart,decrementCart,removeFromCart,incrementCart}) => {
+const SelectedGrid = ({itemsInCart,decrementCart,removeFromCart,incrementCart,decrementInventory, incrementInventory,inventory}) => {
 
     return (
         <Container>
@@ -180,6 +188,9 @@ const SelectedGrid = ({itemsInCart,decrementCart,removeFromCart,incrementCart}) 
                         decrementCart={decrementCart}
                         removeFromCart={removeFromCart}
                         incrementCart={incrementCart}
+                        inventory={inventory}
+                        decrementInventory={decrementInventory}
+                        incrementInventory={incrementInventory}
                     />)}
                 </Tile>
             </Tile>
@@ -218,7 +229,8 @@ const GetTotalCost = ({itemSelected}) => {
             })
     }, {cost: 0, numItems: 0});
 
-    
+
+
     return (
         <p>
             <small>Cost: ${cost.toFixed(2)}</small>
@@ -267,6 +279,9 @@ const ShoppingCart = ({shoppingCartState}) => {
                             decrementCart={shoppingCartState.decrementCart}
                             removeFromCart={shoppingCartState.removeFromCart}
                             incrementCart={shoppingCartState.incrementCart}
+                            decrementInventory={shoppingCartState.decrementInventory}
+                            incrementInventory={shoppingCartState.incrementInventory}
+                            inventory={shoppingCartState.inventory}
                         />
                     </div>
 
