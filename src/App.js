@@ -19,10 +19,9 @@ const App = () => {
         firebase.auth().onAuthStateChanged(setUser);
     }, []);
 
-    const shoppingCartState = useShoppingCart();
+    const shoppingCartState = useShoppingCart(user);
 
     const [data, setData] = useState({});
-
 
 
     useEffect(() => {
@@ -34,7 +33,7 @@ const App = () => {
         fetchProducts();
     }, []);
 
-
+console.log("heeeee",Object.keys(shoppingCartState.itemsInCart))
     return (
 
         <div>
