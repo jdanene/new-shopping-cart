@@ -58,6 +58,7 @@ const SizeAndBuy = ({openCart, addToCart, item, inventory, incrementInventory, d
         setSize(newSize)
     };
 
+
     return (
         <Level>
             <Level.Item align="left">
@@ -105,7 +106,7 @@ const SizeAndBuy = ({openCart, addToCart, item, inventory, incrementInventory, d
                 </Level.Item>
                 <Level.Item>
                     <div style={{marginTop: "30%", marginRight: "-60%"}}>
-                        <Button backgroundColor={"black"} textColor={"white"} fullwidth disabled={size === null || !(hasInventory)}
+                        <Button backgroundColor={"black"} textColor={"white"} fullwidth disabled={size === null || !(hasInventory({inventory}))}
                                 size={"small"}
                                 color="primary"
                                 tooltip={hasInventory ?(size === null ? "Select Size" : ""): ''}
