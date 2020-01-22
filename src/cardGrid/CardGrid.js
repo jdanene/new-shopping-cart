@@ -20,24 +20,43 @@ import {
 import React, {Fragment, useState} from "react";
 import {faAngleDown} from '@fortawesome/free-solid-svg-icons'
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome'
+import {checkIfHasInventory} from "./useShoppingCart";
+
 
 const SHIRT_SIZES = ['S', 'M', 'L', 'XL'];
 
 
-const SizeAndBuy = ({openCart,addToCart,item}) => {
+
+
+const SizeAndBuy = ({openCart, addToCart, item, inventory, incrementInventory, decrementInventory}) => {
     const [size, setSize] = useState(null);
 
 
-    const openCartAndAddToCart= ()=> {
+    const hasInventory = ({inventory}) => Object.values(inventory[item.sku]).reduce((a,b)=>a+b,0);
+
+    /*
+    const incrInventory = () => {
+        incrementInventory(item.sku);
+        setHasInventory(checkIfHasInventory());
+    };*/
+
+
+    const decrInventory = (sku,size) => {
+        decrementInventory({sku,size});
+    };
+
+
+    const openCartAndAddToCart = () => {
+        addToCart({size, item});
+        decrInventory(item.sku,size);
         openCart();
-        addToCart({size,item});
+
     };
 
     const onClick = (newSize) => {
         console.log(newSize);
         setSize(newSize)
     };
-
 
     return (
         <Level>
@@ -47,29 +66,32 @@ const SizeAndBuy = ({openCart,addToCart,item}) => {
                         <Column.Group>
                             <Column>
                                 <div>
-                                    <b><small>Size:</small></b>
+                                    <b><small style={{visibility: hasInventory({inventory})?"visible":"hidden"}} >Size:</small></b>
                                     <br/>
                                 </div>
                                 <Column.Group breakpoint="mobile">
                                     <Column>
-                                        <Dropdown>
+                                        <Dropdown unselectable={!(hasInventory({inventory}))} disabled={!(hasInventory({inventory}))}>
 
                                             <div style={{width: "90%", margin: 0, padding: 0}}>
-                                                <Dropdown.Trigger>
-                                                    <Button size={"small"} fullwidth>
-                                                        <small>{(size === null) ? "Select" : `${size}`}</small>
-                                                        <Icon size="small"><FontAwesomeIcon icon={faAngleDown}/></Icon>
+                                                <Dropdown.Trigger unselectable={!(hasInventory({inventory}))} disabled={!(hasInventory({inventory}))}>
+                                                    <Button size={"small"} fullwidth unselectable={!(hasInventory({inventory}))} disabled={!(hasInventory({inventory}))}>
+                                                        {hasInventory({inventory}) ?
+                                                            <Fragment>
+                                                                <small>{(size === null) ? "Select" : `${size}`}</small>
+                                                                <Icon size="small"><FontAwesomeIcon icon={faAngleDown}/></Icon>
+                                                            </Fragment>
+                                                            : <small style={{color:"grey"}}> Out of Stock</small>}
                                                     </Button>
                                                 </Dropdown.Trigger>
                                             </div>
 
-                                            <Dropdown.Menu>
+                                            <Dropdown.Menu unselectable={!(hasInventory({inventory}))} disabled={!(hasInventory({inventory}))}>
                                                 <div style={{width: "50%"}}>
-                                                    <Dropdown.Content>
-                                                        <Dropdown.Item onClick={() => onClick("S")}>S</Dropdown.Item>
-                                                        <Dropdown.Item onClick={() => onClick("M")}>M</Dropdown.Item>
-                                                        <Dropdown.Item onClick={() => onClick("L")}>L</Dropdown.Item>
-                                                        <Dropdown.Item onClick={() => onClick("XL")}>XL</Dropdown.Item>
+                                                    <Dropdown.Content unselectable={!(hasInventory({inventory}))} disabled={!(hasInventory({inventory}))}>
+                                                        {Object.keys(inventory[item.sku]).map((key) =>
+                                                            inventory[item.sku][key] > 0 ? <Dropdown.Item key={key}
+                                                                onClick={() => onClick(`${key}`)}>{key}</Dropdown.Item> : <Fragment key={key}/>)}
                                                     </Dropdown.Content>
                                                 </div>
 
@@ -83,10 +105,10 @@ const SizeAndBuy = ({openCart,addToCart,item}) => {
                 </Level.Item>
                 <Level.Item>
                     <div style={{marginTop: "30%", marginRight: "-60%"}}>
-                        <Button backgroundColor={"black"} textColor={"white"} fullwidth disabled={size===null}
+                        <Button backgroundColor={"black"} textColor={"white"} fullwidth disabled={size === null || !(hasInventory)}
                                 size={"small"}
                                 color="primary"
-                                tooltip={size===null? "Select Size":""}
+                                tooltip={hasInventory ?(size === null ? "Select Size" : ""): ''}
                                 tooltipPosition="top"
                                 tooltipResponsive={{desktop: 'bottom'}}
                                 onClick={openCartAndAddToCart}>
@@ -108,7 +130,7 @@ const ProductTitle = ({title}) => {
 };
 
 
-
+// FixMe
 const ProductImg = ({sku}) => {
     return (
         <Image.Container size="4by10">
@@ -119,7 +141,8 @@ const ProductImg = ({sku}) => {
     );
 };
 
-const ShoppingCard = ({item, openCart,addToCart}) => {
+
+const ShoppingCard = ({item, openCart, addToCart, inventory, incrementInventory, decrementInventory}) => {
 
     return (
 
@@ -141,7 +164,13 @@ const ShoppingCard = ({item, openCart,addToCart}) => {
 
 
                 <div style={{width: "100%", padding: 0, margin: 0, backgroundColor: '#F5F5F5'}}>
-                        <SizeAndBuy openCart={openCart} addToCart={addToCart} item={item}/>
+                    <SizeAndBuy
+                        openCart={openCart}
+                        addToCart={addToCart}
+                        item={item}
+                        inventory={inventory}
+                        incrementInventory={incrementInventory}
+                        decrementInventory={decrementInventory}/>
                 </div>
             </div>
 
@@ -155,7 +184,6 @@ export const Price = ({price, currencyFormat}) => {
     const pattern = /(?<dollars>[0-9]+)\.(?<cents>[0-9]+)/;
     const match = pattern.exec(price);
     let priceActual = parseFloat(price).toFixed(2);
-
 
 
     return (
@@ -185,7 +213,14 @@ const ColoredLine = ({color}) => (
 const CardGrid = ({products, shoppingCartState}) => {
     return (
         <Column.Group multiline centered>
-            {products.map((item) => <ShoppingCard key={item.sku} item={item} openCart={shoppingCartState.openCart} addToCart = {shoppingCartState.addToCart}
+            {products.map((item) => <ShoppingCard
+                key={item.sku}
+                item={item}
+                openCart={shoppingCartState.openCart}
+                addToCart={shoppingCartState.addToCart}
+                inventory={shoppingCartState.inventory}
+                incrementInventory={shoppingCartState.incrementInventory}
+                decrementInventory={shoppingCartState.decrementInventory}
             />)}
         </Column.Group>
     );
