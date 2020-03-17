@@ -33,7 +33,6 @@ const App = () => {
         fetchProducts();
     }, []);
 
-console.log("heeeee",Object.keys(shoppingCartState.itemsInCart))
     return (
 
         <div>

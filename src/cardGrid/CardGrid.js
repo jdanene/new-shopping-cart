@@ -28,7 +28,7 @@ const SHIRT_SIZES = ['S', 'M', 'L', 'XL'];
 
 
 
-const SizeAndBuy = ({openCart, addToCart, item, inventory, incrementInventory, decrementInventory,itemsInCart}) => {
+export const SizeAndBuy = ({openCart, addToCart, item, inventory, incrementInventory, decrementInventory,itemsInCart}) => {
     const [size, setSize] = useState(null);
 
 
@@ -147,7 +147,7 @@ const SizeAndBuy = ({openCart, addToCart, item, inventory, incrementInventory, d
                                                 <div style={{width: "50%"}}>
                                                     <Dropdown.Content unselectable={!(hasEnoughInventory)} disabled={!(hasEnoughInventory)}>
                                                         {Object.keys(inventory[item.sku]).map((key) =>
-                                                            canBuyItems(key)  ? <Dropdown.Item key={key}
+                                                            canBuyItems(key)  ? <Dropdown.Item key={key} data-testid={`${item.sku}$${key}`}
                                                                 onClick={() => onClick(`${key}`)}>{key}</Dropdown.Item> : <Fragment key={key}/>)}
                                                     </Dropdown.Content>
                                                 </div>
@@ -166,6 +166,7 @@ const SizeAndBuy = ({openCart, addToCart, item, inventory, incrementInventory, d
                                 size={"small"}
                                 color="primary"
                                 tooltip={canAddToCart()}
+                                data-testid={"addToShoppingCart"}
                                 tooltipPosition="top"
                                 tooltipResponsive={{desktop: 'bottom'}}
                                 onClick={openCartAndAddToCart}>

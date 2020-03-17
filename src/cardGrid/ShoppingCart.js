@@ -331,7 +331,9 @@ const ShoppingCart = ({shoppingCartState}) => {
         }
 
 
-        db.ref('inventory').transaction(()=>transcript).then(result => {
+        db.ref('inventory').transaction(()=>transcript)
+            .then(result =>
+            {
             console.log('Transaction success!');
         }).catch(err => {
             console.log('Transaction failure:', err);
