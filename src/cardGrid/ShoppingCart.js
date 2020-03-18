@@ -246,7 +246,7 @@ const GetTotalCost = ({itemSelected}) => {
 
     return (
         <p>
-            <small>Cost: ${cost.toFixed(2)}</small>
+            <small data-cy={'shoppingCart-cost'}>Cost: ${cost.toFixed(2)}</small>
             <br/>
             <small>Items : {numItems}</small>
         </p>
