@@ -11,6 +11,10 @@ cache:
   - node_modules
   # folder with Cypress binary
   - ~/.cache
+before_script:
+  - npm cache clean --force
+  - rm -rf node_modules package-lock.json
+  - npm install
 script:
   - npm run test:ci
   - npm run build
