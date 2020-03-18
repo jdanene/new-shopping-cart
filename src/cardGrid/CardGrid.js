@@ -128,7 +128,7 @@ export const SizeAndBuy = ({openCart, addToCart, item, inventory, incrementInven
                                 <Column.Group breakpoint="mobile">
                                     <Column>
 
-                                        <Dropdown unselectable={!(hasEnoughInventory)} disabled={!(hasEnoughInventory)}>
+                                        <Dropdown unselectable={!(hasEnoughInventory)} disabled={!(hasEnoughInventory)} data-cy={`${item.sku}-dropdown`}>
 
                                             <div style={{width: "90%", margin: 0, padding: 0}}>
                                                 <Dropdown.Trigger unselectable={!(hasEnoughInventory)} disabled={!(hasEnoughInventory)}>
@@ -143,11 +143,13 @@ export const SizeAndBuy = ({openCart, addToCart, item, inventory, incrementInven
                                                 </Dropdown.Trigger>
                                             </div>
 
-                                            <Dropdown.Menu unselectable={!(hasEnoughInventory)} disabled={!(hasEnoughInventory)}>
+                                            <Dropdown.Menu unselectable={!(hasEnoughInventory)} disabled={!(hasEnoughInventory)} >
                                                 <div style={{width: "50%"}}>
                                                     <Dropdown.Content unselectable={!(hasEnoughInventory)} disabled={!(hasEnoughInventory)}>
                                                         {Object.keys(inventory[item.sku]).map((key) =>
-                                                            canBuyItems(key)  ? <Dropdown.Item key={key} data-testid={`${item.sku}$${key}`}
+                                                            canBuyItems(key)  ? <Dropdown.Item key={key}
+                                                                                               data-cy={`${item.sku}-${key}`}
+                                                                                               data-testid={`${item.sku}$${key}`}
                                                                 onClick={() => onClick(`${key}`)}>{key}</Dropdown.Item> : <Fragment key={key}/>)}
                                                     </Dropdown.Content>
                                                 </div>
@@ -167,6 +169,7 @@ export const SizeAndBuy = ({openCart, addToCart, item, inventory, incrementInven
                                 color="primary"
                                 tooltip={canAddToCart()}
                                 data-testid={"addToShoppingCart"}
+                                data-cy={`${item.sku}-addToCart`}
                                 tooltipPosition="top"
                                 tooltipResponsive={{desktop: 'bottom'}}
                                 onClick={openCartAndAddToCart}>
@@ -212,12 +215,16 @@ const ShoppingCard = ({item, openCart, addToCart, inventory, incrementInventory,
                 <Generic
                     style={{cursor: item.description === "" ? 'default' : 'pointer'}}
                     color="primary"
+                    data-cy={item.sku===12064273040195392 && "firstItemPrice"}
                     tooltip={item.description}
                     tooltipPosition="top"
                     tooltipResponsive={{desktop: 'bottom'}}>
                     <ProductTitle title={item.title}/>
                     <ColoredLine color="orange"/>
-                    <Price price={item.price} currencyFormat={item.currencyFormat}/>
+                    <Price
+                        price={item.price}
+                        currencyFormat={item.currencyFormat}
+                    />
                 </Generic>
 
 
