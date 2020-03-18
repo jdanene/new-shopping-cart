@@ -17,4 +17,3 @@ before_script:
   - npm install
 script:
   - npm run test:ci
-  - npm run build
